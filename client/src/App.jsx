@@ -68,16 +68,17 @@ class App extends Component {
     }
     const signPromise = this.state.web3.eth.accounts.signTransaction(tx, this.state.PrivateKey)
     signPromise.then((signedTx) => {
+      let Hash = ""
       this.state.web3.eth.sendSignedTransaction(
         signedTx.rawTransaction,
-        function (err, TxHash) {
+        function async(err, TxHash) {
           if (!err) {
             console.log(
               "The hash of your transaction is: ",
               TxHash,
               "\nCheck Alchemy's Mempool to view the status of your transaction!"
             )
-            return TxHash
+            Hash = TxHash
           } else {
             console.log(
               "Something went wrong when submitting your transaction:",
@@ -86,6 +87,7 @@ class App extends Component {
           }
         }
       )
+      this.setState({ hash: Hash })
     })
       .catch((err) => {
         console.log(" Promise failed:", err)
@@ -104,13 +106,10 @@ class App extends Component {
     this.setState({ TokenUri: e.target.value })
   }
 
-  deployment = (key, uri) => {
-    let Hash=""
-    Hash = this.MintNft(key, uri)
-    if (Hash!=="") {
-      this.setState({ hash: Hash })
-    }
+  deployment = async (key, uri) => {
+    await this.MintNft(key, uri)
     document.querySelector(".msg").style.display = "block"
+    document.querySelector("form").style.display = "none"
   }
 
   render() {
@@ -127,8 +126,11 @@ class App extends Component {
             <input type="submit" value="deploy" id="btn" />
           </form>
           <div className="msg">
-            <h2 style={{ color: "#22c1c3" }}>SUCCESS</h2>
-            <span style={{ color: "#22c1c3" }}>{"The hash of your transaction is: "+JSON.stringify(this.state.hash)}</span>
+            <span className="material-symbols-outlined" style={{ fontSize: "5vmax" }}>
+              check_circle
+            </span>
+            <h1>SUCCESS</h1>
+            <span style={{fontSize:"1.5vmax"}}>{"The hash of your transaction is: " + this.state.hash}</span>
           </div>
         </div>
       </div>
