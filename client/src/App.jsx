@@ -7,7 +7,7 @@ require("dotenv").config()
 class App extends Component {
   constructor() {
     super()
-    this.state = { web3: null, accounts: null, contract: null, PublicKey: "", PrivateKey: "", TokenUri: "", ContractAddress: "0x2d2532A51e140d7eB2336417A93c036aB3d0Deb3", hash: "" }
+    this.state = { web3: null, accounts: null, contract: null, PublicKey: "", PrivateKey: "", TokenUri: "", ContractAddress: "0x2d2532A51e140d7eB2336417A93c036aB3d0Deb3", hash: "", NftContract: null }
   }
 
   componentDidMount = async () => {
@@ -15,7 +15,6 @@ class App extends Component {
       // Get network provider and web3 instance.
       // const contract = require("./contracts/NFT.json")
       // console.log(contract.abi)
-      // const NftContract = new web3.eth.Contract(contract.abi, ContractAddress)
       /* const PublicKey = process.env.PUBLIC_KEY
       const PrivateKey = process.env.PRIVATE_KEY */
       // const TokenUri = "https://i.kym-cdn.com/entries/icons/original/000/021/807/ig9OoyenpxqdCQyABmOQBZDI0duHk2QZZmWg2Hxd4ro.jpg"
@@ -35,6 +34,8 @@ class App extends Component {
         deployedNetwork && deployedNetwork.address,
       )
       this.setState({ web3, accounts, contract: instance }, this.runExample)
+      /* onst NFTcontract = await new web3.eth.Contract(contract.abi, this.state.ContractAddress)
+      this.setState({ NftContract: NFTcontract }) */
     } catch (error) {
       // Catch any errors for any of the above operations.
       alert(
@@ -58,13 +59,15 @@ class App extends Component {
   }
 
   MintNft = async (key, uri) => {
+    const contract = require("./contracts/NFT.json")
+    const NftContract = await new this.state.web3.eth.Contract(contract.abi, this.state.ContractAddress)
     const nonce = this.state.web3.eth.getTransactionCount(this.state.PublicKey, "latest")
     const tx = {
       to: this.state.PublicKey,
       from: this.state.ContractAddress,
       nonce: nonce,
       gas: 500000,
-      // data:NftContract.methods.MintNft(key,uri).encodeABI
+      data: NftContract.methods.safeMint(key, uri).encodeABI
     }
     const signPromise = this.state.web3.eth.accounts.signTransaction(tx, this.state.PrivateKey)
     signPromise.then((signedTx) => {
@@ -130,7 +133,7 @@ class App extends Component {
               check_circle
             </span>
             <h1>SUCCESS</h1>
-            <span style={{fontSize:"1.5vmax"}}>{"The hash of your transaction is: " + this.state.hash}</span>
+            <span style={{ fontSize: "1.5vmax" }}>{"The hash of your transaction is: " + this.state.hash}</span>
           </div>
         </div>
       </div>
